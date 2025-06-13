@@ -52,7 +52,6 @@ namespace EpinelPS.Utils
 
             return targetFile;
         }
-
         public static async Task HandleReq(HttpContext context)
         {
             string? targetFile = await DownloadOrGetFileAsync(context.Request.Path.Value ?? "", CancellationToken.None);
@@ -66,7 +65,12 @@ namespace EpinelPS.Utils
                 await Results.Stream(new FileStream(targetFile, FileMode.Open, FileAccess.Read, FileShare.Read), contentType: contentType, enableRangeProcessing: true).ExecuteAsync(context);
             }
             else
-                context.Response.StatusCode = 404;
+            {
+                // 返回空内容响应而不是404错误
+                context.Response.StatusCode = 200;
+                context.Response.ContentLength = 0;
+                await context.Response.WriteAsync("");
+            }
         }
 
         private static async Task<string> GetCloudIpAsync()
